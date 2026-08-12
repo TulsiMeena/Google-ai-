@@ -47,12 +47,12 @@ class LiveSessionManager(
     private val receivedAudioChunkCount = AtomicInteger(0)
     private val isConnected = AtomicBoolean(false)
 
-    var modelName: String = "gemini-3.1-flash-live-preview"
+    var modelName: String = "models/gemini-2.0-flash-exp"
     var voiceName: String = "Aoede"
 
     fun addDiagnosticsLog(msg: String) {
         val current = _diagnosticsLogs.value.toMutableList()
-        if (current.size > 200) current.removeAt(0)
+        if (current.size > 500) current.removeAt(0)
         current.add("[${System.currentTimeMillis() % 100000}] $msg")
         _diagnosticsLogs.value = current
     }
@@ -92,9 +92,7 @@ class LiveSessionManager(
         audioRecordManager = AudioRecordManager(
             onAudioChunk = { chunk ->
                 pcmChunkCounter++
-                if (pcmChunkCounter % 50 == 0) {
-                    addDiagnosticsLog("PCM_BYTES_CAPTURED = ${chunk.size} (chunk #$pcmChunkCounter)")
-                }
+                addDiagnosticsLog("PCM_BYTES_CAPTURED = ${chunk.size}")
 
                 val rms = calculatePcmRms(chunk)
                 if (_audioState.value == AudioState.SPEAKING) {

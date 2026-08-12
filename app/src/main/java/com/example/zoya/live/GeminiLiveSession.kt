@@ -16,7 +16,7 @@ import com.example.zoya.personality.ZoyaPersonality
 
 class GeminiLiveSession(
     private val apiKey: String,
-    private val modelName: String = "models/gemini-2.5-flash-native-audio-preview-12-2025",
+    private val modelName: String = "models/gemini-2.0-flash-exp",
     private val voiceName: String = "Aoede",
     private val customSystemInstruction: String? = null,
     private val onConnected: () -> Unit,
@@ -139,7 +139,14 @@ class GeminiLiveSession(
     }
 
     fun sendAudioChunk(pcmAudioBytes: ByteArray) {
-        if (!isConnected.get() || webSocket == null || pcmAudioBytes.isEmpty()) return
+        if (pcmAudioBytes.isEmpty()) return
+
+        if (!isConnected.get() || webSocket == null) {
+            val err = "Session not connected or WebSocket is null"
+            Log.w(TAG, "GEMINI_AUDIO_SEND_ERROR = $err")
+            onDiagnosticsLog("GEMINI_AUDIO_SEND_ERROR = $err")
+            return
+        }
 
         try {
             val base64Data = Base64.encodeToString(pcmAudioBytes, Base64.NO_WRAP)
@@ -157,9 +164,18 @@ class GeminiLiveSession(
                 put("realtimeInput", realtimeInput)
             }
 
-            webSocket?.send(frame.toString())
+            val sent = webSocket?.send(frame.toString()) ?: false
+            if (sent) {
+                onDiagnosticsLog("PCM_AUDIO_SENT_TO_GEMINI = ${pcmAudioBytes.size}")
+            } else {
+                val err = "WebSocket.send returned false (socket closed or buffer full)"
+                Log.e(TAG, "GEMINI_AUDIO_SEND_ERROR = $err")
+                onDiagnosticsLog("GEMINI_AUDIO_SEND_ERROR = $err")
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Error sending audio chunk", e)
+            val err = e.localizedMessage ?: e.message ?: "Exception sending PCM audio"
+            Log.e(TAG, "GEMINI_AUDIO_SEND_ERROR = $err", e)
+            onDiagnosticsLog("GEMINI_AUDIO_SEND_ERROR = $err")
         }
     }
 
@@ -225,6 +241,11 @@ class GeminiLiveSession(
         try {
             val root = JSONObject(jsonText)
 
+            if (root.has("setupComplete")) {
+                Log.d(TAG, "Gemini Live setup complete received")
+                onDiagnosticsLog("GEMINI LIVE SETUP COMPLETE")
+            }
+
             // Handle toolCall if present
             val toolCallObj = root.optJSONObject("toolCall")
                 ?: root.optJSONObject("serverContent")?.optJSONObject("toolCall")
@@ -265,8 +286,7 @@ class GeminiLiveSession(
                                     val audioBytes = Base64.decode(dataBase64, Base64.DEFAULT)
                                     if (audioBytes.isNotEmpty()) {
                                         audioChunkCount++
-                                        val logMsg =
-                                            "GEMINI AUDIO RECEIVED bytes = ${audioBytes.size} sampleRate = 24000 format = PCM16"
+                                        val logMsg = "GEMINI_AUDIO_RESPONSE_RECEIVED bytes = ${audioBytes.size}"
                                         Log.d(TAG, logMsg)
                                         onDiagnosticsLog(logMsg)
                                         onAudioReceived(audioBytes)

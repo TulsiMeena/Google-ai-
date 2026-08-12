@@ -79,7 +79,7 @@ class AudioTrackPlayer(
 
             audioTrack?.play()
             isInitialized.set(true)
-            val startLog = "AUDIOTRACK STARTED sampleRate = $SAMPLE_RATE"
+            val startLog = "AUDIOTRACK_STARTED sampleRate = $SAMPLE_RATE"
             Log.d(TAG, startLog)
             onDiagnosticsLog(startLog)
 
@@ -99,12 +99,12 @@ class AudioTrackPlayer(
                                 onPlaybackStarted()
                             }
 
-                            val writeLog = "AUDIOTRACK WRITING bytes = ${chunk.size}"
-                            Log.d(TAG, writeLog)
-                            onDiagnosticsLog(writeLog)
-
                             val written = audioTrack?.write(chunk, 0, chunk.size) ?: -1
-                            if (written < 0) {
+                            if (written > 0) {
+                                val writeLog = "AUDIOTRACK_AUDIO_WRITTEN = $written"
+                                Log.d(TAG, writeLog)
+                                onDiagnosticsLog(writeLog)
+                            } else if (written < 0) {
                                 val err = "AUDIO PLAYBACK ERROR: AudioTrack write failed code = $written"
                                 Log.e(TAG, err)
                                 onError(err)
