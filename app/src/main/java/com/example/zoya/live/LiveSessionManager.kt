@@ -47,7 +47,7 @@ class LiveSessionManager(
     private val receivedAudioChunkCount = AtomicInteger(0)
     private val isConnected = AtomicBoolean(false)
 
-    var modelName: String = "models/gemini-2.0-flash-exp"
+    var modelName: String = "models/gemini-3.1-flash-live-preview"
     var voiceName: String = "Aoede"
 
     fun addDiagnosticsLog(msg: String) {

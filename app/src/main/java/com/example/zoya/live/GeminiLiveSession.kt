@@ -16,7 +16,7 @@ import com.example.zoya.personality.ZoyaPersonality
 
 class GeminiLiveSession(
     private val apiKey: String,
-    private val modelName: String = "models/gemini-2.0-flash-exp",
+    private val modelName: String = "models/gemini-3.1-flash-live-preview",
     private val voiceName: String = "Aoede",
     private val customSystemInstruction: String? = null,
     private val onConnected: () -> Unit,
@@ -152,6 +152,10 @@ class GeminiLiveSession(
             val base64Data = Base64.encodeToString(pcmAudioBytes, Base64.NO_WRAP)
 
             val realtimeInput = JSONObject().apply {
+                put("audio", JSONObject().apply {
+                    put("mimeType", "audio/pcm;rate=16000")
+                    put("data", base64Data)
+                })
                 put("mediaChunks", JSONArray().apply {
                     put(JSONObject().apply {
                         put("mimeType", "audio/pcm;rate=16000")

@@ -79,7 +79,7 @@ class AudioTrackPlayer(
 
             audioTrack?.play()
             isInitialized.set(true)
-            val startLog = "AUDIOTRACK_STARTED sampleRate = $SAMPLE_RATE"
+            val startLog = "AUDIOTRACK_STARTED = $SAMPLE_RATE"
             Log.d(TAG, startLog)
             onDiagnosticsLog(startLog)
 
