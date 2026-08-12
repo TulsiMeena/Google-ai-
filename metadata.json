@@ -1,0 +1,6 @@
+{
+  "name": "Zoya Voice",
+  "description": "Zoya Real-Time Gemini Live Voice Assistant with bidirectional PCM audio streaming",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
